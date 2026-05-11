@@ -31,6 +31,14 @@ function setupEventListeners() {
   });
   newChatButton.addEventListener("click", createNewSession);
 
+  // Theme toggle
+  const themeToggle = document.getElementById("themeToggle");
+  themeToggle.addEventListener("click", () => {
+    document.documentElement.classList.toggle("light-theme");
+    const isLight = document.documentElement.classList.contains("light-theme");
+    localStorage.setItem("theme", isLight ? "light" : "dark");
+  });
+
   // Suggested questions
   document.querySelectorAll(".suggested-item").forEach((button) => {
     button.addEventListener("click", (e) => {
