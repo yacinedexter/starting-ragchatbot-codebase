@@ -165,11 +165,13 @@ class VectorStore:
             return
         
         documents = [chunk.content for chunk in chunks]
-        metadatas = [{
-            "course_title": chunk.course_title,
-            "lesson_number": chunk.lesson_number,
-            "chunk_index": chunk.chunk_index
-        } for chunk in chunks]
+        # ChromaDB 1.0 rejects None metadata values; omit lesson_number when absent.
+        metadatas = []
+        for chunk in chunks:
+            meta = {"course_title": chunk.course_title, "chunk_index": chunk.chunk_index}
+            if chunk.lesson_number is not None:
+                meta["lesson_number"] = chunk.lesson_number
+            metadatas.append(meta)
         # Use title with chunk index for unique IDs
         ids = [f"{chunk.course_title.replace(' ', '_')}_{chunk.chunk_index}" for chunk in chunks]
         
@@ -246,6 +248,29 @@ class VectorStore:
             print(f"Error getting course link: {e}")
             return None
     
+    def get_course_outline(self, course_title: str) -> Optional[Dict[str, Any]]:
+        """Get full outline for a course: title, link, and lesson list."""
+        import json
+        resolved = self._resolve_course_name(course_title)
+        if not resolved:
+            return None
+        try:
+            results = self.course_catalog.get(ids=[resolved])
+            if results and results.get('metadatas'):
+                meta = results['metadatas'][0]
+                lessons = json.loads(meta.get('lessons_json', '[]'))
+                return {
+                    'title': meta.get('title', resolved),
+                    'course_link': meta.get('course_link'),
+                    'lessons': [
+                        {'lesson_number': l['lesson_number'], 'lesson_title': l['lesson_title']}
+                        for l in lessons
+                    ]
+                }
+        except Exception as e:
+            print(f"Error getting course outline: {e}")
+        return None
+
     def get_lesson_link(self, course_title: str, lesson_number: int) -> Optional[str]:
         """Get lesson link for a given course title and lesson number"""
         import json
