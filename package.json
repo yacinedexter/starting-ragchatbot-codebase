@@ -1,0 +1,13 @@
+{
+  "name": "ragchatbot-frontend",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "format": "prettier --write frontend/",
+    "format:check": "prettier --check frontend/",
+    "quality": "npm run format:check"
+  },
+  "devDependencies": {
+    "prettier": "^3.5.3"
+  }
+}
